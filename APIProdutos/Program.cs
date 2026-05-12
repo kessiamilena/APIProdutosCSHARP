@@ -1,4 +1,21 @@
+using APIProdutos.Contexts;
+using APIProdutos.Interfaces;
+using APIProdutos.Repositories;
+using APIProdutos.Services;
+using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load();
+
+// Criar string de conexão na program
+string? connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION");
+
+if(string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new Exception("Connection string não encontrada.");
+}
 
 // Add services to the container.
 
@@ -6,6 +23,13 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// registra conexão com o banco (DBContext -> ProdutoContext)
+builder.Services.AddDbContext<ProdutoContext>(options => options.UseSqlServer(connectionString));
+
+// Injeção de dependências
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped<ProdutoService>();
 
 var app = builder.Build();
 
